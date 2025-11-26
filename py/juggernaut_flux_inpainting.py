@@ -48,6 +48,28 @@ class JuggernautFluxInpainting:
                 }),
             },
             "optional": {
+                "lora_1_path": ("STRING", {
+                    "default": "",
+                    "tooltip": "First LoRA model URL or path (e.g., 'https://civitai.com/api/download/models/...')"
+                }),
+                "lora_1_scale": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 4.0,
+                    "step": 0.1,
+                    "tooltip": "First LoRA influence scale (0.0 to 4.0)"
+                }),
+                "lora_2_path": ("STRING", {
+                    "default": "",
+                    "tooltip": "Second LoRA model URL or path (optional)"
+                }),
+                "lora_2_scale": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 4.0,
+                    "step": 0.1,
+                    "tooltip": "Second LoRA influence scale (0.0 to 4.0)"
+                }),
                 "num_inference_steps": ("INT", {
                     "default": 28,
                     "min": 1,
@@ -112,6 +134,10 @@ class JuggernautFluxInpainting:
         prompt,
         image_url,
         mask_url,
+        lora_1_path="",
+        lora_1_scale=1.0,
+        lora_2_path="",
+        lora_2_scale=1.0,
         num_inference_steps=28,
         guidance_scale=3.5,
         strength=0.85,
@@ -130,6 +156,10 @@ class JuggernautFluxInpainting:
             prompt: Text prompt for inpainting
             image_url: URL of the source image
             mask_url: URL of the mask image (white = inpaint area)
+            lora_1_path: First LoRA model URL or path
+            lora_1_scale: First LoRA influence scale (0-4)
+            lora_2_path: Second LoRA model URL or path
+            lora_2_scale: Second LoRA influence scale (0-4)
             num_inference_steps: Number of inference steps
             guidance_scale: Guidance scale for generation
             strength: Strength of inpainting effect
@@ -146,6 +176,19 @@ class JuggernautFluxInpainting:
 
         # Create the actual client object
         real_client = FalClient(api_key=client["api_key"])
+
+        # Build LoRA list from inputs
+        lora_list = []
+        if lora_1_path and lora_1_path.strip():
+            lora_list.append({
+                "path": lora_1_path.strip(),
+                "scale": lora_1_scale
+            })
+        if lora_2_path and lora_2_path.strip():
+            lora_list.append({
+                "path": lora_2_path.strip(),
+                "scale": lora_2_scale
+            })
 
         # Build the request arguments
         arguments = {
@@ -165,6 +208,10 @@ class JuggernautFluxInpainting:
         # Only add seed if it's not -1 (random)
         if seed != -1:
             arguments["seed"] = seed
+
+        # Add LoRAs if any are specified
+        if lora_list:
+            arguments["loras"] = lora_list
 
         # Model identifier for Juggernaut Flux LoRA Inpainting
         model_id = "rundiffusion-fal/juggernaut-flux-lora/inpainting"
