@@ -1,0 +1,4 @@
+[API]
+# Your fal.ai API key
+# Get your key from: https://fal.ai/dashboard/keys
+api_key = YOUR_FAL_API_KEY_HERE
